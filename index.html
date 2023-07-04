@@ -6,7 +6,8 @@
           content="width=device-width, initial-scale=1.0">
     <title>Яндекс.Дом</title>
     <link rel="preload" as="font" href="assets/lato.woff2" type="font/woff2" crossorigin="anonymous">
-    <script src="vendors/react-with-dom.js"></script>
+    <script defer crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script defer crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <link rel="stylesheet" type="text/css" href="reset.css">
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
@@ -39,7 +40,7 @@
 <script type="text/babel">
     function Header() {
         let [expanded, setExpanded] = React.useState(false);
-        let [toggled, setToggled] = React.useState(false);
+        let [toggled, setToggled] = React.useState(false)
 
         const onClick = () => {
             if (!toggled) {
@@ -70,18 +71,8 @@
         </header>;
     }
 
-    function Event(props) {
+    function _Event(props) {
         const ref = React.useRef();
-
-        const { onSize } = props;
-
-        React.useEffect(() => {
-            const width = ref.current.offsetWidth;
-            const height = ref.current.offsetHeight;
-            if (onSize) {
-                onSize({ width, height });
-            }
-        });
 
         return <li ref={ref} className={'event' + (props.slim ? ' event_slim' : '')}>
             <button className="event__button">
@@ -93,6 +84,7 @@
             </button>
         </li>;
     }
+    const Event = React.memo(_Event);
 
     const TABS = {
         all: {
@@ -212,6 +204,8 @@
         const [activeTab, setActiveTab] = React.useState('');
         const [hasRightScroll, setHasRightScroll] = React.useState(false);
 
+        const refTabList = React.useRef();
+
         React.useEffect(() => {
             if (!activeTab && !initedRef.current) {
                 initedRef.current = true;
@@ -223,20 +217,18 @@
             setActiveTab(event.target.value);
         };
 
-        let sizes = [];
-        const onSize = size => {
-            sizes = [...sizes, size];
-        };
-
         React.useEffect(() => {
-            const sumWidth = sizes.reduce((acc, item) => acc + item.width, 0);
-            const sumHeight = sizes.reduce((acc, item) => acc + item.height, 0);
+            if (!refTabList.current || !activeTab) {
+                setHasRightScroll(false);
+                return;
+            }
+            const listWidth = refTabList.current.scrollWidth;
 
-            const newHasRightScroll = sumWidth > ref.current.offsetWidth;
+            const newHasRightScroll = listWidth > ref.current.offsetWidth;
             if (newHasRightScroll !== hasRightScroll) {
                 setHasRightScroll(newHasRightScroll);
             }
-        });
+        }, [refTabList, activeTab]);
 
         const onArrowCLick = () => {
             const scroller = ref.current.querySelector('.section__panel:not(.section__panel_hidden)');
@@ -374,12 +366,11 @@
                 <div className="section__panel-wrapper" ref={ref}>
                     {TABS_KEYS.map(key =>
                         <div key={key} role="tabpanel" className={'section__panel' + (key === activeTab ? '' : ' section__panel_hidden')} aria-hidden={key === activeTab ? 'false' : 'true'} id={`panel_${key}`} aria-labelledby={`tab_${key}`}>
-                            <ul className="section__panel-list">
+                            <ul ref={key === activeTab ? refTabList : null} className="section__panel-list">
                                 {TABS[key].items.map((item, index) =>
                                     <Event
                                         key={index}
                                         {...item}
-                                        onSize={onSize}
                                     />
                                 )}
                             </ul>
@@ -393,15 +384,13 @@
         </main>;
     }
 
-    setTimeout(() => {
-        const root = ReactDOM.createRoot(document.getElementById('app'));
-        root.render(
-            <>
-                <Header />
-                <Main />
-            </>
-        );
-    }, 100);
+    const root = ReactDOM.createRoot(document.getElementById('app'));
+    root.render(
+        <>
+            <Header />
+            <Main />
+        </>
+    );
 </script>
 
 </body>
