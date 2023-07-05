@@ -2,12 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Яндекс.Дом</title>
     <link rel="preload" as="font" href="assets/lato.woff2" type="font/woff2" crossorigin="anonymous">
     <script defer crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script defer crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script defer src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <link rel="stylesheet" type="text/css" href="reset.css">
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
@@ -36,8 +36,7 @@
     </div>
 </footer>
 
-<script src="vendors/babel.min.js"></script>
-<script type="text/babel">
+<script defer type="text/babel">
     function Header() {
         let [expanded, setExpanded] = React.useState(false);
         let [toggled, setToggled] = React.useState(false)
@@ -363,33 +362,33 @@
                     </ul>
                 </div>
 
+            {activeTab && (
                 <div className="section__panel-wrapper" ref={ref}>
-                    {TABS_KEYS.map(key =>
-                        <div key={key} role="tabpanel" className={'section__panel' + (key === activeTab ? '' : ' section__panel_hidden')} aria-hidden={key === activeTab ? 'false' : 'true'} id={`panel_${key}`} aria-labelledby={`tab_${key}`}>
-                            <ul ref={key === activeTab ? refTabList : null} className="section__panel-list">
-                                {TABS[key].items.map((item, index) =>
-                                    <Event
-                                        key={index}
-                                        {...item}
-                                    />
-                                )}
-                            </ul>
-                        </div>
-                    )}
+                    <div key={activeTab} role="tabpanel" className={'section__panel'} id={`panel_${activeTab}`} aria-labelledby={`tab_${activeTab}`}>
+                        <ul ref={refTabList} className="section__panel-list">
+                            {TABS[activeTab].items.map((item, index) =>
+                                <Event
+                                    key={index}
+                                    {...item}
+                                />
+                            )}
+                        </ul>
+                    </div>
                     {hasRightScroll &&
                         <div className="section__arrow" onClick={onArrowCLick}></div>
                     }
                 </div>
+            )}
             </section>
         </main>;
     }
 
     const root = ReactDOM.createRoot(document.getElementById('app'));
     root.render(
-        <>
+        <React.Fragment>
             <Header />
             <Main />
-        </>
+        </React.Fragment>
     );
 </script>
 
